@@ -1,0 +1,45 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { discoverOpportunity } from "./ai.js";
+import { createUser, getUser } from "./users.js";
+
+dotenv.config();
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public")); // serve frontend
+
+// Subdomain middleware (simple simulation)
+app.use((req, res, next) => {
+  const host = req.headers.host; // e.g., username.lumosplatform.com
+  const username = host.split(".")[0];
+  if (getUser(username)) req.user = getUser(username);
+  next();
+});
+
+// API: Sign up
+app.post("/signup", async (req, res) => {
+  const { username, profile } = req.body;
+  if (!username || !profile) return res.status(400).json({ error: "Missing data" });
+
+  const user = createUser(username, profile);
+  const plan = await discoverOpportunity(profile);
+
+  res.json({
+    message: "User created",
+    subdomain: user.subdomain,
+    opportunityPlan: plan,
+  });
+});
+
+// API: Get user
+app.get("/user/:username", (req, res) => {
+  const user = getUser(req.params.username);
+  if (!user) return res.status(404).json({ error: "User not found" });
+  res.json(user);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT,"0.0.0.0", () => console.log(`🔥 LUMOS running on http://localhost:${PORT}`));
+

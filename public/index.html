@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LUMOS Signup</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+    input, textarea { width: 100%; margin: 5px 0; padding: 8px; }
+    button { padding: 10px 20px; background: #4caf50; color: white; border: none; cursor: pointer; }
+    pre { background: #eee; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>LUMOS Signup</h1>
+  <label>Username:</label>
+  <input type="text" id="username" placeholder="Enter username">
+  <label>Profile (JSON):</label>
+  <textarea id="profile" rows="10">
+{
+  "age": 24,
+  "location": "Nigeria",
+  "interests": ["design", "technology"],
+  "skills": ["Photoshop"],
+  "goals": "earn online",
+  "time_per_day": "3 hours"
+}
+  </textarea>
+  <button onclick="signup()">Sign Up</button>
+  <h2>Result:</h2>
+  <pre id="result"></pre>
+
+  <script>
+    async function signup() {
+      const username = document.getElementById("username").value;
+      let profile;
+      try {
+        profile = JSON.parse(document.getElementById("profile").value);
+      } catch (e) { alert("Invalid JSON"); return; }
+
+      const res = await fetch("/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, profile })
+      });
+
+      const data = await res.json();
+      document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
+
