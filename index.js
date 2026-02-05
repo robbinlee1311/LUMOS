@@ -1,8 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { createUser, getUsers } from "./users.js";
-import { chatWithAI } from "./ai.js";
 
 dotenv.config();
 
@@ -11,33 +9,65 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// User routes
-app.get("/users", (req, res) => {
-  res.json(getUsers());
+/* =========================
+   ROOT
+========================= */
+app.get("/", (req, res) => {
+  res.send("🔥 LUMOS is alive");
 });
 
-app.post("/users", (req, res) => {
-  try {
-    const user = createUser(req.body);
-    res.json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+/* =========================
+   PUBLIC API DOCS
+========================= */
+app.get("/docs", (req, res) => {
+  res.json({
+    name: "LUMOS",
+    version: "v1",
+    baseUrl: "https://lumos-ex3w.onrender.com",
+    endpoints: {
+      root: "GET /",
+      docs: "GET /docs",
+      ai: "POST /ai",
+      identity: "GET /id/new"
+    }
+  });
 });
 
-// AI route
+/* =========================
+   AI ENDPOINT (SAFE STUB)
+========================= */
 app.post("/ai", async (req, res) => {
-  try {
-    const { message } = req.body;
-    const reply = await chatWithAI(message);
-    res.json({ reply });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "AI request failed" });
+  const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: "Message required" });
   }
+
+  // Temporary response so system never crashes
+  res.json({
+    reply: `LUMOS received: "${message}"`
+  });
 });
 
+/* =========================
+   DECENTRALIZED IDENTITY
+========================= */
+import crypto from "crypto";
+
+app.get("/id/new", (req, res) => {
+  const key = crypto.randomBytes(32).toString("hex");
+
+  res.json({
+    did: `did:lumos:${key.slice(0, 16)}`,
+    publicKey: key
+  });
+});
+
+/* =========================
+   START SERVER
+========================= */
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`🔥 LUMOS running on http://localhost:${PORT}`);
 });
